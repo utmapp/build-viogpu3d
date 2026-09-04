@@ -342,6 +342,7 @@ meson.exe setup %MESON_RECONFIGURE% ^
   --default-library=static ^
   -Dbuildtype=release ^
   -Db_ndebug=true ^
+  -Ddebug=true ^
   -Db_vscrt=mt ^
   -Dllvm=enabled ^
   -Dplatforms=windows ^
