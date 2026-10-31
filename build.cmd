@@ -116,6 +116,11 @@ where /q ninja.exe || (
   del ninja-win.zip 1>nul 2>nul
 )
 
+rem Meson regenerates with the first ninja on PATH, which inside VsDevCmd is the
+rem older ninja bundled with Visual Studio; it cannot read the build log written
+rem by this ninja and discards it, forcing a full rebuild.  Pin meson to ours.
+if not defined NINJA for /f "tokens=*" %%i in ('where ninja.exe') do if not defined NINJA set NINJA=%%i
+
 if not exist winflexbison (
   echo Downloading win_flex_bison
   mkdir winflexbison
