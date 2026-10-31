@@ -324,6 +324,10 @@ copy meson\meson.llvm.build mesa-src\subprojects\llvm\meson.build 1>nul || exit 
 rem *** build mesa ***
 
 rem rd /s /q mesa-build-%MESA_ARCH% 1>nul 2>nul
+rem An already configured build dir ignores -D options unless reconfigured, so
+rem changes such as a new NPT_UMD_VERSION would otherwise be silently dropped.
+set MESON_RECONFIGURE=
+if exist mesa-build-%MESA_ARCH%\meson-private\coredata.dat set MESON_RECONFIGURE=--reconfigure
 setlocal
 call "%VS%\Common7\Tools\VsDevCmd.bat" -arch=%TARGET_ARCH% -host_arch=%HOST_ARCH% -startdir=none -no_logo || exit /b 1
 rem arm64ec: prepend the arm64ec import libraries so /arm64EC objects link.
@@ -331,7 +335,7 @@ rem Delayed expansion avoids the "(x86)" in WindowsSdkDir closing this parse
 rem context early.  The /arm64EC compiler switch and /MACHINE shim come from the
 rem arm64ec cross file, so the meson invocation below is the same for every arch.
 if "%MESA_ARCH%" equ "arm64ec" set LIB=!VCToolsInstallDir!lib\arm64ec;!WindowsSdkDir!Lib\!WindowsSDKVersion!um\arm64ec;!WindowsSdkDir!Lib\!WindowsSDKVersion!ucrt\arm64ec;!LIB!
-meson.exe setup ^
+meson.exe setup %MESON_RECONFIGURE% ^
   mesa-build-%MESA_ARCH% ^
   mesa-src ^
   --prefix="%CD%\mesa-install-%MESA_ARCH%" ^
