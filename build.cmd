@@ -69,6 +69,11 @@ if "%MESA_ARCH%" equ "x86" (
   set MESON_CROSS=%MESON_CROSS% -Dmin-windows-version=7
 )
 
+rem The Neptune UMD file version must equal the KMD's INF DriverVer; the driver
+rem package build supplies it as NPT_UMD_VERSION.
+set MESON_UMD_VERSION=
+if "%NPT_UMD_VERSION%" neq "" set MESON_UMD_VERSION=-Dnpt_umd_version=%NPT_UMD_VERSION%
+
 set PATH=%CD%\glslang-%GLSLANG_VERSION%.install\bin;%CD%\winflexbison;%CD%\arm64ec-shim;%PATH%
 
 rem *** check dependencies ***
@@ -343,6 +348,7 @@ meson.exe setup ^
   -Dneptune=true ^
   -Dnpt_wine=false ^
   -Dnpt_umd=ddi ^
+  %MESON_UMD_VERSION% ^
   %MESON_CROSS% || exit /b 1
 ninja.exe -C mesa-build-%MESA_ARCH% install || exit /b 1
 endlocal
