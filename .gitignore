@@ -1,7 +1,6 @@
-/llvm-*
-/mesa-*
-/archive-*
-/winflexbison
-/*.7z
-/*.xz
-/*.exe
+# Everything the scripts generate.
+/build/
+/out/
+
+# Machine-specific settings; see config.example.psd1.
+/config.psd1

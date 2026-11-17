@@ -1,1 +1,7 @@
-*.patch eol=lf
+* text=auto
+
+# cmd.exe misparses batch files with LF line endings, and Windows PowerShell
+# reads a BOM-less script as ANSI, so these stay CRLF and ASCII everywhere.
+*.cmd  text eol=crlf
+*.ps1  text eol=crlf
+*.psd1 text eol=crlf

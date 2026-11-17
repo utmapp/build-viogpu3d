@@ -1,0 +1,7 @@
+# Python packages for the Mesa build, installed into build\tools\venv.
+# Meson is pinned so that every machine configures Mesa the same way.
+meson==1.10.2
+ninja
+mako
+packaging
+pyyaml

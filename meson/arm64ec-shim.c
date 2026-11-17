@@ -1,5 +1,5 @@
 /*
- * arm64ec-machine-shim.c
+ * arm64ec-shim.c
  *
  * A transparent wrapper around MSVC's lib.exe / link.exe that rewrites a
  * "/MACHINE:ARM64" argument to "/MACHINE:ARM64EC" before forwarding.
@@ -20,12 +20,9 @@
  * only if the probe output contains "/OUT:", which "lib /?" prints but
  * "lib --version" does not.
  *
- * (The LLVM CMake build needs no shim: CMake detects _M_ARM64EC from the
- * /arm64EC compiler flag and emits /machine:ARM64EC natively.)
- *
- * Build both views from this one source (see build.cmd):
- *   cl /DSHIM_LIB  /Fe:arm64ec-lib.exe  arm64ec-machine-shim.c
- *   cl /DSHIM_LINK /Fe:arm64ec-link.exe arm64ec-machine-shim.c
+ * Build both views from this one source (lib/umd.ps1 does):
+ *   cl /DSHIM_LIB  /Fe:arm64ec-lib.exe  arm64ec-shim.c
+ *   cl /DSHIM_LINK /Fe:arm64ec-link.exe arm64ec-shim.c
  *
  * The shim finds the real tool by name on PATH -- its own name is distinct,
  * so it never recurses.
