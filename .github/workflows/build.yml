@@ -71,6 +71,12 @@ jobs:
 
       - name: build
         shell: powershell
+        # The runner's WDK has broken x86 InfVerif and ApiValidator tools
+        # (InfVerif.dll is missing, aitstatic is not runnable), which fails the
+        # ARM64 driver after it has linked. MSBuild takes these as properties.
+        env:
+          SkipPackageVerification: 'true'
+          ApiValidator_Enable: 'false'
         run: >
           .\build.ps1
           -Target all,viogpudo
