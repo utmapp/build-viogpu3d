@@ -27,8 +27,9 @@
     # Provider = 'Example Corporation'
 
     # submit.ps1: a JSON file with tenantId, clientId and clientSecret, and
-    # text to put in front of the product names it creates in Partner Center
-    # ("<driver> <version> <package> <timestamp>").
+    # what the products it creates in Partner Center are called in place of
+    # the driver's name ("<name> <version> <package> <timestamp>"): one name,
+    # or a name per driver.
     # CredentialFile = 'C:\path\outside\the\repository\hdc-credentials.json'
-    # ProductName    = 'Example'
+    # ProductName    = @{ viogpu3d = 'Example GPU 3D'; viogpudo = 'Example GPU' }
 }

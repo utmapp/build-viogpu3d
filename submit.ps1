@@ -41,8 +41,11 @@ to every cabinet built.
 A JSON file with the Partner Center credentials. Defaults to config.psd1.
 
 .PARAMETER ProductName
-Text to put in front of the product names, which are the driver, its version,
-the package and a timestamp. Defaults to config.psd1, then nothing.
+What the products are called in Partner Center, in place of the driver's name:
+a product is named "<name> <version> <package> <timestamp>". Given here, it
+applies to every package submitted. In config.psd1 it can also be a table of
+names by driver, such as @{ viogpu3d = '...'; viogpudo = '...' }. Defaults to
+the driver's name.
 
 .PARAMETER AnnouncementDate
 The product's announcement date, which the API requires. Defaults to today.
@@ -321,11 +324,15 @@ function Complete-Download {
 
 Invoke-Main {
     $config = Read-LocalConfig
-    foreach ($name in 'CredentialFile', 'ProductName', 'CertFile', 'CertThumbprint', 'CertSubject', 'TimestampUrl') {
+    foreach ($name in 'CredentialFile', 'CertFile', 'CertThumbprint', 'CertSubject', 'TimestampUrl') {
         if (-not (Get-Variable -Name $name -ValueOnly) -and $config.ContainsKey($name)) {
             Set-Variable -Name $name -Value $config[$name]
         }
     }
+    # One name for everything from the command line; from config.psd1, one
+    # name or a name per driver.
+    $productNames = $ProductName
+    if (-not $productNames) { $productNames = $config['ProductName'] }
     $script:HdcCredentialFile = $CredentialFile
     $script:BuildRoot = Join-Path $script:RepoRoot 'build'
 
@@ -387,7 +394,10 @@ Invoke-Main {
         $hash = Test-Cabinet $manifest $cab -ReportOnly:$DryRun
 
         $signatures = Get-RequestedSignatures $manifest.package $manifest.os
-        $productTitle = "$ProductName $($manifest.driver) $($manifest.version) $($manifest.package) $((Get-Date).ToString('yyyyMMdd-HHmmss'))".Trim()
+        $productLabel = $productNames
+        if ($productNames -is [System.Collections.IDictionary]) { $productLabel = $productNames[$manifest.driver] }
+        if (-not $productLabel) { $productLabel = $manifest.driver }
+        $productTitle = "$productLabel $($manifest.version) $($manifest.package) $((Get-Date).ToString('yyyyMMdd-HHmmss'))"
         $body = New-HdcProductBody -Name $productTitle -Signatures $signatures -AnnouncementDate $AnnouncementDate
         Write-Info "requesting $($signatures.Count) signatures:"
         foreach ($signature in $signatures) { Write-Info "  $signature" }
@@ -428,7 +438,10 @@ Invoke-Main {
 
     if ($NoWait) {
         Write-Step 'Submitted'
-        Write-Info 'Follow up with: .\submit.ps1 -Status, then .\submit.ps1 -Download'
+        $where = "-Os $Os"
+        if ($Configuration -eq 'Debug') { $where += ' -Configuration Debug' }
+        if ($Path) { $where = "-Path `"$directory`"" }
+        Write-Info "Follow up with: .\submit.ps1 $where -Status, then -Download in place of -Status"
         return
     }
 
