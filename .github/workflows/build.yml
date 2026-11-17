@@ -1,0 +1,89 @@
+name: build
+
+# A manually started build of the test-signed driver packages. The driver and
+# Mesa checkouts sit inside the workspace, where build.ps1 is pointed at them.
+# An empty ref means the repository's default branch.
+#
+# The artifact is the input of resign.ps1, which puts the EV signature on the
+# packages on a machine that has the certificate; submit.ps1 takes it from
+# there. Keep the manifests (out/<os>/*.json) in it.
+
+on:
+  workflow_dispatch:
+    inputs:
+      kmd_repo:
+        description: 'Driver repository (owner/name): utmapp/viogpu-wddm or a fork'
+        required: true
+        default: 'utmapp/viogpu-wddm'
+      kmd_ref:
+        description: 'Driver ref (empty: the default branch)'
+      umd_repo:
+        description: 'Mesa repository (owner/name): utmapp/mesa or a fork'
+        required: true
+        default: 'utmapp/mesa'
+      umd_ref:
+        description: 'Mesa ref (empty: the default branch)'
+      arch:
+        # A choice holds one value and build.ps1 takes a list, so the options
+        # are the lists worth building. x86 has no package of its own: it adds
+        # the WOW64 driver to the package next to it.
+        description: 'Architectures (all: x64, arm64x and x86)'
+        required: true
+        default: 'all'
+        type: choice
+        options:
+          - all
+          - x64,x86
+          - arm64x,x86
+          - x64
+          - arm64x
+          - arm64
+      os:
+        description: 'Target OS'
+        required: true
+        default: 'Win10'
+        type: choice
+        options: [Win10, Win11]
+
+jobs:
+  build:
+    # windows-2022 has Visual Studio 2022 and the WDK installed.
+    runs-on: windows-2022
+
+    steps:
+
+      - name: checkout
+        uses: actions/checkout@v4
+
+      - name: checkout viogpu-wddm
+        uses: actions/checkout@v4
+        with:
+          repository: ${{ inputs.kmd_repo }}
+          ref: ${{ inputs.kmd_ref }}
+          path: viogpu-wddm
+
+      - name: checkout mesa
+        uses: actions/checkout@v4
+        with:
+          repository: ${{ inputs.umd_repo }}
+          ref: ${{ inputs.umd_ref }}
+          path: mesa
+
+      - name: build
+        shell: powershell
+        run: >
+          .\build.ps1
+          -Target all,viogpudo
+          -KmdSource viogpu-wddm
+          -UmdSource mesa
+          -Arch ${{ inputs.arch }}
+          -Os ${{ inputs.os }}
+
+      - name: upload packages
+        uses: actions/upload-artifact@v4
+        with:
+          name: viogpu-${{ inputs.os }}
+          path: |
+            out/${{ inputs.os }}
+            out/symbols
+          if-no-files-found: error
