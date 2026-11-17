@@ -363,6 +363,14 @@ meson.exe setup %MESON_RECONFIGURE% ^
 ninja.exe -C mesa-build-%MESA_ARCH% install || exit /b 1
 endlocal
 
+rem The Venus Vulkan ICD comes from -Dvulkan-drivers=virtio above.  The KMD
+rem packages it only if it exists (an Exists() condition in viogpu3d.vcxproj),
+rem so a build that silently dropped it would yield a driver with no Vulkan.
+if not exist "mesa-install-%MESA_ARCH%\bin\vulkan_virtio.dll" (
+  echo ERROR: Venus ICD "mesa-install-%MESA_ARCH%\bin\vulkan_virtio.dll" was not built^^!
+  exit /b 1
+)
+
 rem *** done ***
 
 if "%GITHUB_WORKFLOW%" neq "" (
