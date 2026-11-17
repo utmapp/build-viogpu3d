@@ -82,6 +82,17 @@ function Initialize-UmdTools {
     }
 
     $scripts = Join-Path $venv 'Scripts'
+
+    # Mesa looks for "python3", and a Windows venv has only python.exe, so
+    # Meson would find whatever python3.exe is on PATH (another install, or the
+    # Microsoft Store placeholder), without mako. A copy of the venv launcher
+    # under that name runs the venv's interpreter.
+    $python3 = Join-Path $scripts 'python3.exe'
+    if (-not (Test-Path -LiteralPath $python3) -or
+        (Get-Item -LiteralPath $python3).Length -ne (Get-Item -LiteralPath $python).Length) {
+        Copy-Item -LiteralPath $python -Destination $python3 -Force
+    }
+
     $script:UmdTools = [pscustomobject]@{
         Scripts = $scripts
         Meson   = Join-Path $scripts 'meson.exe'
