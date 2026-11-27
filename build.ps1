@@ -305,9 +305,9 @@ Invoke-Main {
     # --- user-mode drivers ---------------------------------------------------
     if ($components) {
         foreach ($mesaArch in $mesaArches) {
-            # No 32-bit Vulkan ICD is registered, so x86 is Neptune only.
+            # Experimental: allow the existing x86 Mesa Venus target to compile so its
+            # ICD can be validated standalone before package/INF integration.
             $wanted = $components
-            if ($mesaArch -eq 'x86') { $wanted = @($components | Where-Object { $_ -eq 'neptune' }) }
             if (-not $wanted) { continue }
             Build-UmdArch -Arch $mesaArch -Components $wanted -Version $version -Revision $umdRevision -Clean:$Clean
         }
